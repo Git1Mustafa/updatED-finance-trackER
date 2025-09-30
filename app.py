@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory, make_response
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -24,6 +24,38 @@ CORS(app, origins=[
     "http://localhost:3000",
     "null"  # For file:// protocol
 ], supports_credentials=True)
+
+# Add strict cache and charset headers for compatibility/performance/security guidance
+@app.after_request
+def add_default_headers(response):
+    # Ensure UTF-8 charset on JSON and HTML
+    if response.content_type and 'charset' not in response.content_type:
+        if response.mimetype in ('application/json', 'text/html'):
+            response.headers['Content-Type'] = f"{response.mimetype}; charset=utf-8"
+
+    # Prefer Cache-Control over Expires
+    path = request.path or ''
+    if path.startswith(('/login', '/register', '/transactions', '/health')):
+        # API responses: avoid caching
+        response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    elif path.startswith('/static/'):
+        # Static assets: long-term cache with immutable
+        response.headers['Cache-Control'] = 'public, max-age=31536000, immutable'
+    else:
+        # Default (e.g., index.html): short cache
+        response.headers.setdefault('Cache-Control', 'no-cache')
+
+    # Remove Expires header
+    response.headers.pop('Expires', None)
+    return response
+
+# Serve index.html via Flask to control headers
+@app.route('/')
+def index():
+    response = make_response(send_from_directory(basedir, 'index.html'))
+    # index.html should typically not be long-cached
+    response.headers['Cache-Control'] = 'no-cache'
+    return response
 
 # Database configuration
 basedir = os.path.abspath(os.path.dirname(__file__))
