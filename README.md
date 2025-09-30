@@ -28,7 +28,8 @@ It allows users to register, log in, record income and expenses, and visualize t
 - SQLite (lightweight database)
 
   ---
-  
+
+## 📂 Project Structure
 finance-tracker/
 │── frontend/
 │ ├── index.html
@@ -133,5 +134,3 @@ This project is licensed under the MIT License – feel free to use and modify i
 
 ⚡ This README is **GitHub-ready**: includes intro, features, tech stack, project structure, setup, API docs, and license.  
 
-
-## 📂 Project Structure
